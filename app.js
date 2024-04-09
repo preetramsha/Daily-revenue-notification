@@ -2,12 +2,12 @@ const { createCanvas, registerFont } = require('canvas');
 
 // Path to your custom font file
 const fontPath = './pricedow.ttf';
- 
+
 // Register the custom font
 registerFont(fontPath, { family: 'CustomFont' });
 
 // Text to be displayed on the image
-const text = '$2,125.98';
+const text = '$22,125.98';
 
 // Set canvas dimensions
 const width = 800; // Width of the canvas
@@ -42,12 +42,26 @@ const maxFontSize = findMaxFontSize();
 // Set font properties with the maximum font size
 context.font = `${maxFontSize}px CustomFont`;
 context.fillStyle = 'green'; // Set font color to green
+//6CC04A
+// Set border properties
+const borderWidth = 2; // Border width in pixels
+context.strokeStyle = 'black'; // Set border color to black
 
 // Position the text in the center
 const x = (width - measureTextWidth(maxFontSize)) / 2;
 const y = height / 2;
 
-// Draw the text on the canvas
+// Draw the text with border
+for (let xOffset = -borderWidth; xOffset <= borderWidth; xOffset++) {
+    for (let yOffset = -borderWidth; yOffset <= borderWidth; yOffset++) {
+        if (xOffset !== 0 || yOffset !== 0) {
+            context.strokeStyle = 'black'; // Set border color to black
+            context.strokeText(text, x + xOffset, y + yOffset);
+        }
+    }
+}
+
+// Draw the main text on the canvas
 context.fillText(text, x, y);
 
 // Convert canvas to a data URL
