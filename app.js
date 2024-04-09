@@ -73,3 +73,60 @@ const text = 112225.98;
 
 const imageDataURL = generateImageWithText(text, fontPath, width = 800, height = 400);
 console.log(imageDataURL);
+
+
+const fetch = require('node-fetch');
+
+async function sendImageToChannel(botToken, chatId, base64Image) {
+    // Convert base64 image to binary data
+    const binaryData = Buffer.from(base64Image, 'base64');
+
+    // Send the image to Telegram
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        body: JSON.stringify({
+            chat_id: chatId,
+            photo: binaryData
+        })
+    });
+
+    const responseData = await response.json();
+    console.log(responseData);
+}
+
+/*
+const fetch = require('node-fetch');
+
+async function sendImageToChannel(botToken, chatId, base64Image) {
+    // Convert base64 image to binary data
+    const binaryData = Buffer.from(base64Image, 'base64');
+
+    // Send the image to Telegram
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        body: JSON.stringify({
+            chat_id: chatId,
+            photo: binaryData
+        })
+    });
+
+    const responseData = await response.json();
+    console.log(responseData);
+}
+
+// Example usage
+const botToken = 'YOUR_BOT_TOKEN';
+const chatId = 'YOUR_CHANNEL_CHAT_ID';
+const base64Image = 'BASE64_IMAGE_URI';
+
+sendImageToChannel(botToken, chatId, base64Image)
+    .then(() => console.log('Image sent successfully'))
+    .catch(err => console.error('Error sending image:', err));
+
+    */
