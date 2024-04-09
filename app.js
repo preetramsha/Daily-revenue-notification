@@ -41,8 +41,8 @@ const maxFontSize = findMaxFontSize();
 
 // Set font properties with the maximum font size
 context.font = `${maxFontSize}px CustomFont`;
-context.fillStyle = 'green'; // Set font color to green
-//6CC04A
+context.fillStyle = '#6CC04A'; // Set font color to green
+
 // Set border properties
 const borderWidth = 2; // Border width in pixels
 context.strokeStyle = 'black'; // Set border color to black
