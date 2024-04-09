@@ -67,9 +67,9 @@ function generateImageWithText(text, fontPath, width, height) {
 
 // Example usage:
 const fontPath = './pricedow.ttf';
-const width = 800;
-const height = 400;
-const text = 11225.98;
+// const width = 800;
+// const height = 400;
+const text = 112225.98;
 
-const imageDataURL = generateImageWithText(text, fontPath, width, height);
+const imageDataURL = generateImageWithText(text, fontPath, width = 800, height = 400);
 console.log(imageDataURL);
