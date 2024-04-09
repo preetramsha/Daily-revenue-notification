@@ -2,7 +2,7 @@ const { createCanvas, registerFont } = require('canvas');
 
 // Path to your custom font file
 const fontPath = './pricedow.ttf';
-
+ 
 // Register the custom font
 registerFont(fontPath, { family: 'CustomFont' });
 
