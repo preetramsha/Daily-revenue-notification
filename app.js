@@ -125,8 +125,8 @@ function generateImageWithText(amt, fontPath, width, height, capt) {
 
 //fetch this from database;
 const text = 5.98;
-const botToken = '6727957547:AAGvVHJ9iHhYJONQ3GAPFier0iP7A5sPGcc';
-const chatId = '-1002052362839';
+const botToken = process.env.BOT_TOKEN;
+const chatId = process.env.CHAT_ID;
 const USD = value => currency(value, { symbol: "$", precision: 2 });
 const amt = USD(text).format();
 
