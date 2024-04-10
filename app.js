@@ -34,18 +34,12 @@ async function sendImageWithCaption(chatId, stream, caption, botToken) {
         });
 
         const responseData = await response.json();
-        if (responseData.ok) {
-            console.log('Image sent successfully');
-        } else {
-            console.error('Error sending image:', responseData.description);
-        }
-    } catch (error) {
-        console.error('Error sending image:', error);
+    } catch (err) {
     }
 }
  
 function generateImageWithText(amt, fontPath, width, height, capt) {
-    console.log(amt);
+
     // Register the custom font
     registerFont(fontPath, { family: 'CustomFont' });
     
@@ -122,7 +116,6 @@ function generateImageWithText(amt, fontPath, width, height, capt) {
     const stream = createReadableStreamFromBase64URI(dataURL);
     sendImageWithCaption(chatId,stream,capt,botToken);
 }
-
 
 //fetch this from database;
 const text = 5.98;
