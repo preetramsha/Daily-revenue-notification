@@ -3,6 +3,11 @@ const currency = require('currency.js');
 const FormData = require('form-data');
 const fetch = require('node-fetch');
 const { Readable } = require('stream');
+const mongoose = require('mongoose');
+const dailyCalls = require('./Models/dailyCalls');
+require("dotenv").config();
+
+mongoose.connect(process.env.DB_URI).catch(() => console.log("err"));
 
 function createReadableStreamFromBase64URI(base64URI) {
     // Extract the base64 data
@@ -32,8 +37,6 @@ async function sendImageWithCaption(chatId, stream, caption, botToken) {
             method: 'POST',
             body: formData
         });
-
-        const responseData = await response.json();
     } catch (err) {
     }
 }
@@ -116,12 +119,40 @@ function generateImageWithText(amt, fontPath, width, height, capt) {
     const stream = createReadableStreamFromBase64URI(dataURL);
     sendImageWithCaption(chatId,stream,capt,botToken);
 }
-
+async function getTodaysSearchAPICalls() {
+    try {
+      // Get today's date in the same format as stored in the database
+      const currentDate = new Date();
+      const day = currentDate.getDate().toString().padStart(2, '0');
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = currentDate.getFullYear().toString().slice(-2);
+      const formattedDate = `${day}/${month}/${year}`;
+      //const formattedDate = `07/04/24`;
+      // Query the database to find the document with today's date
+      const todayCalls = await dailyCalls.findOne({ date: formattedDate });
+  
+      if (!todayCalls) {
+        // If no document found for today, return 0 calls
+        return 0;
+      }
+  
+      // Return the number of calls for the "searchapi" service
+      return todayCalls.services.get('searchapi') || 0;
+      //change service here
+    } catch (error) {
+      // Handle any errors that might occur during the database query
+      console.error("Error retrieving today's API calls for searchapi:", error);
+      throw error; // You can choose to throw the error or handle it differently
+    }
+  }
 //fetch this from database;
-const text = 5.98;
+
 const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 const USD = value => currency(value, { symbol: "$", precision: 2 });
-const amt = USD(text).format();
 
-generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}`);
+getTodaysSearchAPICalls().then((calls) => {
+    const amt = USD(calls*0.005).format();
+    generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}`);
+    mongoose.connection.close();
+})
