@@ -3,7 +3,6 @@ const currency = require('currency.js');
 const FormData = require('form-data');
 const fetch = require('node-fetch');
 const { Readable } = require('stream');
-const fs = require('fs');
 
 function createReadableStreamFromBase64URI(base64URI) {
     // Extract the base64 data
@@ -45,10 +44,7 @@ async function sendImageWithCaption(chatId, stream, caption, botToken) {
     }
 }
 
-
-function generateImageWithText(text, fontPath, width, height) {
-    const USD = value => currency(value, { symbol: "$", precision: 2 });
-    const amt = USD(text).format();
+function generateImageWithText(amt, fontPath, width, height, capt) {
     console.log(amt);
     // Register the custom font
     registerFont(fontPath, { family: 'CustomFont' });
@@ -56,6 +52,21 @@ function generateImageWithText(text, fontPath, width, height) {
     // Create a canvas
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
+
+    // Measure text metrics to calculate vertical centering
+    function measureTextMetrics(fontSize) {
+        context.font = `${fontSize}px CustomFont`;
+        const metrics = context.measureText(amt);
+        const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8; // Fallback for browsers not supporting actualBoundingBoxAscent
+        const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2; // Fallback for browsers not supporting actualBoundingBoxDescent
+        return { ascent, descent };
+    }
+
+    // Function to find the vertical position that centers the text within the canvas
+    function findVerticalCenterPosition(fontSize) {
+        const { ascent, descent } = measureTextMetrics(fontSize);
+        return (height - (ascent + descent)) / 2 + ascent; // Adjusted position to center text
+    }
 
     // Function to measure text width for a given font size
     function measureTextWidth(fontSize) {
@@ -79,6 +90,9 @@ function generateImageWithText(text, fontPath, width, height) {
     // Calculate the maximum font size
     const maxFontSize = findMaxFontSize();
 
+    // Calculate the vertical center position
+    const centerY = findVerticalCenterPosition(maxFontSize);
+
     // Set font properties with the maximum font size
     context.font = `${maxFontSize}px CustomFont`;
     context.fillStyle = '#6CC04A'; // Set font color to green
@@ -87,41 +101,33 @@ function generateImageWithText(text, fontPath, width, height) {
     const borderWidth = 1.8; // Border width in pixels
     context.strokeStyle = 'black'; // Set border color to black
 
-    // Position the text in the center
+    // Position the text horizontally in the center
     const x = (width - measureTextWidth(maxFontSize)) / 2;
-    const y = height / 2;
 
     // Draw the text with border
     for (let xOffset = -borderWidth; xOffset <= borderWidth; xOffset++) {
         for (let yOffset = -borderWidth; yOffset <= borderWidth; yOffset++) {
             if (xOffset !== 0 || yOffset !== 0) {
                 context.strokeStyle = 'black'; // Set border color to black
-                context.strokeText(amt, x + xOffset, y + yOffset);
+                context.strokeText(amt, x + xOffset, centerY + yOffset);
             }
         }
     }
 
     // Draw the main text on the canvas
-    context.fillText(amt, x, y);
+    context.fillText(amt, x, centerY);
 
     // Convert canvas to a data URL
     const dataURL = canvas.toDataURL();
-    return dataURL;
+    const stream = createReadableStreamFromBase64URI(dataURL);
+    sendImageWithCaption(chatId,stream,capt,botToken);
 }
 
-// Example usage:
-const fontPath = './pricedow.ttf';
-const text = 112225.98;
-
-const imageDataURL = generateImageWithText(text, fontPath, width = 800, height = 400);
-console.log(imageDataURL);
-const stream = createReadableStreamFromBase64URI(imageDataURL);
-
-// Example usage
+//fetch this from database;
+const text = 5.98;
 const botToken = '6727957547:AAGvVHJ9iHhYJONQ3GAPFier0iP7A5sPGcc';
 const chatId = '-1002052362839';
+const USD = value => currency(value, { symbol: "$", precision: 2 });
+const amt = USD(text).format();
 
-sendImageWithCaption(chatId,stream,"captionn",botToken);
-// sendMessageWithImage(botToken, chatId, message, base64Image)
-//     .then(() => console.log('Message and image sent successfully'))
-//     .catch(err => console.error('Error sending message and image:', err));
+generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}`);
