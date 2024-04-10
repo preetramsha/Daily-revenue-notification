@@ -1,5 +1,50 @@
 const { createCanvas, registerFont } = require('canvas');
 const currency = require('currency.js');
+const FormData = require('form-data');
+const fetch = require('node-fetch');
+const { Readable } = require('stream');
+const fs = require('fs');
+
+function createReadableStreamFromBase64URI(base64URI) {
+    // Extract the base64 data
+    const base64Data = base64URI.split(';base64,').pop();
+
+    // Convert base64 data to a buffer
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Create a readable stream from the buffer
+    const readableStream = new Readable();
+    readableStream.push(buffer);
+    readableStream.push(null); // Signal the end of the stream
+
+    return readableStream;
+}
+
+async function sendImageWithCaption(chatId, stream, caption, botToken) {
+    try {
+        // Prepare the form data
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('photo', stream, { filename: 'img.png' }); // Pass the readable stream directly
+        formData.append('caption', caption);
+
+        // Send the image with caption to the Telegram bot API
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const responseData = await response.json();
+        if (responseData.ok) {
+            console.log('Image sent successfully');
+        } else {
+            console.error('Error sending image:', responseData.description);
+        }
+    } catch (error) {
+        console.error('Error sending image:', error);
+    }
+}
+
 
 function generateImageWithText(text, fontPath, width, height) {
     const USD = value => currency(value, { symbol: "$", precision: 2 });
@@ -61,72 +106,22 @@ function generateImageWithText(text, fontPath, width, height) {
 
     // Convert canvas to a data URL
     const dataURL = canvas.toDataURL();
-
     return dataURL;
 }
 
 // Example usage:
 const fontPath = './pricedow.ttf';
-// const width = 800;
-// const height = 400;
 const text = 112225.98;
 
 const imageDataURL = generateImageWithText(text, fontPath, width = 800, height = 400);
 console.log(imageDataURL);
-
-
-const fetch = require('node-fetch');
-
-async function sendImageToChannel(botToken, chatId, base64Image) {
-    // Convert base64 image to binary data
-    const binaryData = Buffer.from(base64Image, 'base64');
-
-    // Send the image to Telegram
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
-        body: JSON.stringify({
-            chat_id: chatId,
-            photo: binaryData
-        })
-    });
-
-    const responseData = await response.json();
-    console.log(responseData);
-}
-
-/*
-const fetch = require('node-fetch');
-
-async function sendImageToChannel(botToken, chatId, base64Image) {
-    // Convert base64 image to binary data
-    const binaryData = Buffer.from(base64Image, 'base64');
-
-    // Send the image to Telegram
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
-        body: JSON.stringify({
-            chat_id: chatId,
-            photo: binaryData
-        })
-    });
-
-    const responseData = await response.json();
-    console.log(responseData);
-}
+const stream = createReadableStreamFromBase64URI(imageDataURL);
 
 // Example usage
-const botToken = 'YOUR_BOT_TOKEN';
-const chatId = 'YOUR_CHANNEL_CHAT_ID';
-const base64Image = 'BASE64_IMAGE_URI';
+const botToken = '6727957547:AAGvVHJ9iHhYJONQ3GAPFier0iP7A5sPGcc';
+const chatId = '-1002052362839';
 
-sendImageToChannel(botToken, chatId, base64Image)
-    .then(() => console.log('Image sent successfully'))
-    .catch(err => console.error('Error sending image:', err));
-
-    */
+sendImageWithCaption(chatId,stream,"captionn",botToken);
+// sendMessageWithImage(botToken, chatId, message, base64Image)
+//     .then(() => console.log('Message and image sent successfully'))
+//     .catch(err => console.error('Error sending message and image:', err));
