@@ -43,7 +43,7 @@ async function sendImageWithCaption(chatId, stream, caption, botToken) {
         console.error('Error sending image:', error);
     }
 }
-
+ 
 function generateImageWithText(amt, fontPath, width, height, capt) {
     console.log(amt);
     // Register the custom font
@@ -122,6 +122,7 @@ function generateImageWithText(amt, fontPath, width, height, capt) {
     const stream = createReadableStreamFromBase64URI(dataURL);
     sendImageWithCaption(chatId,stream,capt,botToken);
 }
+
 
 //fetch this from database;
 const text = 5.98;
