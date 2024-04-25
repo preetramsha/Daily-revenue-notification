@@ -176,6 +176,7 @@ getTodaysSearchAPICalls().then((calls) => {
     })
 })
 
+
 //send directly for testing only
 // const options = {
 //     method: 'GET',
