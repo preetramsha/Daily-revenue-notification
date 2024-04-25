@@ -6,8 +6,9 @@ const { Readable } = require('stream');
 const mongoose = require('mongoose');
 const dailyCalls = require('./Models/dailyCalls');
 require("dotenv").config();
+const axios = require('axios');
 
-mongoose.connect(process.env.DB_URI).catch(() => console.log("err"));
+mongoose.connect(process.env.DB_URI).catch(() => console.log("err conneting"));
 
 function createReadableStreamFromBase64URI(base64URI) {
     // Extract the base64 data
@@ -152,7 +153,48 @@ const chatId = process.env.CHAT_ID;
 const USD = value => currency(value, { symbol: "$", precision: 2 });
 
 getTodaysSearchAPICalls().then((calls) => {
+    const options = {
+        method: 'GET',
+        url: 'https://currency-conversion-and-exchange-rates.p.rapidapi.com/convert',
+        params: {
+          from: 'USD',
+          to: 'INR',
+          amount: calls*0.005
+        },
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPID_API_KEY,
+          'X-RapidAPI-Host': 'currency-conversion-and-exchange-rates.p.rapidapi.com'
+        }
+      };
+    axios.request(options).then(resp =>{
     const amt = USD(calls*0.005).format();
-    generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}`);
+    let inr = currency(resp.data.result, { useVedic: true }).format(); 
+    inr = inr.slice(1);
+    inr = "₹" + inr;
+    generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}\nINR: ${inr}`);
     mongoose.connection.close();
+    })
 })
+
+//send directly for testing only
+// const options = {
+//     method: 'GET',
+//     url: 'https://currency-conversion-and-exchange-rates.p.rapidapi.com/convert',
+//     params: {
+//       from: 'USD',
+//       to: 'INR',
+//       amount: 70000
+//     },
+//     headers: {
+//       'X-RapidAPI-Key': process.env.RAPID_API_KEY,
+//       'X-RapidAPI-Host': 'currency-conversion-and-exchange-rates.p.rapidapi.com'
+//     }
+// };
+
+// axios.request(options).then(resp =>{
+//     let inr = currency(resp.data.result, { useVedic: true }).format(); 
+//     inr = inr.slice(1);
+//     inr = "₹" + inr;
+//     const amt = USD(70000).format();
+//     generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}\nINR: ${inr}`);
+// })
