@@ -120,6 +120,9 @@ function generateImageWithText(amt, fontPath, width, height, capt) {
     const stream = createReadableStreamFromBase64URI(dataURL);
     sendImageWithCaption(chatId,stream,capt,botToken);
 }
+
+//!!!!!!
+//you will have to change this function and retrive data from your database here.
 async function getTodaysSearchAPICalls() {
     try {
       // Get today's date in the same format as stored in the database
@@ -146,13 +149,15 @@ async function getTodaysSearchAPICalls() {
       throw error; // You can choose to throw the error or handle it differently
     }
   }
-//fetch this from database;
 
 const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 const USD = value => currency(value, { symbol: "$", precision: 2 });
 
 getTodaysSearchAPICalls().then((calls) => {
+    //I am converting also as I live in INDIA and also want to see in INR. you can add your desired currencies also.
+    //register on rapidapi for this service 1000 calls per month are free! lol we only need about 30 per month
+    //so it is forever free for us
     const options = {
         method: 'GET',
         url: 'https://currency-conversion-and-exchange-rates.p.rapidapi.com/convert',
@@ -168,14 +173,14 @@ getTodaysSearchAPICalls().then((calls) => {
       };
     axios.request(options).then(resp =>{
     const amt = USD(calls*0.005).format();
+    //as currency.js does not support inr formatting directly so I added ₹ by my own.
     let inr = currency(resp.data.result, { useVedic: true }).format(); 
     inr = inr.slice(1);
     inr = "₹" + inr;
-    generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}\nINR: ${inr}`);
+    generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue\nUSD: ${amt}\nINR: ${inr}`);
     mongoose.connection.close();
     })
 })
-
 
 //send directly for testing only
 // const options = {
@@ -197,5 +202,5 @@ getTodaysSearchAPICalls().then((calls) => {
 //     inr = inr.slice(1);
 //     inr = "₹" + inr;
 //     const amt = USD(70000).format();
-//     generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue: ${amt}\nINR: ${inr}`);
+//     generateImageWithText(amt, fontPath = './pricedow.ttf', width = 800, height = 250,`Today's Revenue\nUSD: ${amt}\nINR: ${inr}`);
 // })
